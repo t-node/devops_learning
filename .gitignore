@@ -1,0 +1,39 @@
+# Terraform local directories
+.terraform/
+.terraform.*
+
+# Terraform state
+terraform.tfstate
+terraform.tfstate.*
+*.tfstate
+*.tfstate.*
+
+# Terraform plans
+*.tfplan
+
+# Local environment variable files
+*.tfvars
+*.tfvars.json
+
+# Ignore environment-specific .terraform folders
+envs/*/.terraform/
+envs/*/.terraform.*
+envs/*/terraform.tfstate
+envs/*/terraform.tfstate.*
+envs/*/*.tfplan
+envs/*/*.tfvars
+
+# Provider binaries (like AWS provider exe on Windows)
+terraform-provider-*
+*.exe
+
+# Lock files (optional)
+*.lock.hcl
+
+# IDE folders
+.vscode/
+.idea/
+
+# OS junk files
+.DS_Store
+Thumbs.db
