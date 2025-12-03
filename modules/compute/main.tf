@@ -1,22 +1,4 @@
-module "network" {
-  source            = "./modules/network"
-  region            = "ap-south-1"
-  vpc_cidr          = "10.0.0.0/16"
-  subnet_cidr       = "10.0.1.0/24"
-  availability_zone = "ap-south-1a"
-}
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
 
-provider "aws" {
-  region = "ap-south-1"
-}
 
 data "aws_ami" "amazon_linux" {
   most_recent = true
@@ -35,9 +17,8 @@ data "aws_ami" "amazon_linux" {
 }
 
 resource "aws_security_group" "node_sg" {
-  name        = "k3s_node_sg"
-  
-  vpc_id      = module.network.vpc_id
+  name        = "k3s_node_sg"  
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "SSH from anywhere"
@@ -55,6 +36,14 @@ resource "aws_security_group" "node_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "NodePort Services"
+    from_port   = 32080
+    to_port     = 32080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     description = "Allow all outbound traffic"
     from_port   = 0
@@ -67,8 +56,8 @@ resource "aws_security_group" "node_sg" {
 
 resource "aws_instance" "web" {
   ami                         = data.aws_ami.amazon_linux.id
-  instance_type               = "t3.micro"
-  subnet_id                   = module.network.subnet_id
+  instance_type               = var.instance_type
+  subnet_id                   = var.subnet_id
   vpc_security_group_ids      = [aws_security_group.node_sg.id]
   key_name                    = aws_key_pair.key_ssh.key_name
   associate_public_ip_address = false
@@ -125,24 +114,4 @@ resource "aws_key_pair" "key_ssh" {
 resource "aws_eip" "app" {
   domain   = "vpc"
   instance = aws_instance.web.id
-}
-output "aws_instance_public_ip" {
-  value = aws_eip.app.public_ip
-
-}
-output "aws_instance_id" {
-  value = aws_instance.web.id
-}
-output "aws_instance_public_dns" {
-  value = aws_eip.app.public_dns
-}
-output "aws_instance_private_ip" {
-  value = aws_instance.web.private_ip
-}
-output "key_pair_name" {
-  value = aws_key_pair.key_ssh.key_name
-}
-
-output "k3s_kubeconfig_scp" {
-  value = "scp -i C:\\Users\\Admin\\.ssh\\id_rsa ec2-user@${aws_eip.app.public_ip}:/home/ec2-user/.kube/config C:\\Users\\Admin\\k3s-config"
 }

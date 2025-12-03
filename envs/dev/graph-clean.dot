@@ -1,0 +1,43 @@
+digraph G {
+  rankdir = "RL";
+  node [shape = rect, fontname = "sans-serif"];
+  "null_resource.fetch_kubeconfig" [label="null_resource.fetch_kubeconfig"];
+  "null_resource.wait_for_k3s" [label="null_resource.wait_for_k3s"];
+  subgraph "cluster_module.compute" {
+    label = "module.compute"
+    fontname = "sans-serif"
+    "module.compute.data.aws_ami.amazon_linux" [label="data.aws_ami.amazon_linux"];
+    "module.compute.aws_eip.app" [label="aws_eip.app"];
+    "module.compute.aws_instance.web" [label="aws_instance.web"];
+    "module.compute.aws_key_pair.key_ssh" [label="aws_key_pair.key_ssh"];
+    "module.compute.aws_security_group.node_sg" [label="aws_security_group.node_sg"];
+  }
+  subgraph "cluster_module.memos" {
+    label = "module.memos"
+    fontname = "sans-serif"
+    "module.memos.helm_release.memos" [label="helm_release.memos"];
+  }
+  subgraph "cluster_module.network" {
+    label = "module.network"
+    fontname = "sans-serif"
+    "module.network.aws_internet_gateway.igw" [label="aws_internet_gateway.igw"];
+    "module.network.aws_route_table.public_rt" [label="aws_route_table.public_rt"];
+    "module.network.aws_route_table_association.public_a_assoc" [label="aws_route_table_association.public_a_assoc"];
+    "module.network.aws_subnet.public_a" [label="aws_subnet.public_a"];
+    "module.network.aws_vpc.main" [label="aws_vpc.main"];
+  }
+  "null_resource.fetch_kubeconfig" -> "null_resource.wait_for_k3s";
+  "null_resource.wait_for_k3s" -> "module.compute.aws_eip.app";
+  "module.compute.aws_eip.app" -> "module.compute.aws_instance.web";
+  "module.compute.aws_instance.web" -> "module.compute.data.aws_ami.amazon_linux";
+  "module.compute.aws_instance.web" -> "module.compute.aws_key_pair.key_ssh";
+  "module.compute.aws_instance.web" -> "module.compute.aws_security_group.node_sg";
+  "module.compute.aws_instance.web" -> "module.network.aws_subnet.public_a";
+  "module.compute.aws_security_group.node_sg" -> "module.network.aws_vpc.main";
+  "module.memos.helm_release.memos" -> "null_resource.fetch_kubeconfig";
+  "module.network.aws_internet_gateway.igw" -> "module.network.aws_vpc.main";
+  "module.network.aws_route_table.public_rt" -> "module.network.aws_internet_gateway.igw";
+  "module.network.aws_route_table_association.public_a_assoc" -> "module.network.aws_route_table.public_rt";
+  "module.network.aws_route_table_association.public_a_assoc" -> "module.network.aws_subnet.public_a";
+  "module.network.aws_subnet.public_a" -> "module.network.aws_vpc.main";
+}
