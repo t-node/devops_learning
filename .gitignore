@@ -7,10 +7,17 @@ terraform.tfstate
 terraform.tfstate.*
 *.tfstate
 *.tfstate.*
-
+graph.dot
+graph.png
+graph-clean.dot
+memos-manual.yaml
+memos-values.yaml
+current-values.yaml
+values.yaml
+tf-helm-memos.log
 # Terraform plans
 *.tfplan
-
+k3s.yaml
 # Local environment variable files
 *.tfvars
 *.tfvars.json
